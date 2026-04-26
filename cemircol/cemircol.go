@@ -1,7 +1,7 @@
 package cemircol
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../target/release -lcemircol
+#cgo LDFLAGS: -L${SRCDIR}/../target/release -lcemircol -Wl,-rpath,${SRCDIR}/../target/release
 #include <stdlib.h>
 
 typedef void* cemircol_reader_t;
@@ -10,6 +10,7 @@ extern cemircol_reader_t cemircol_reader_new(const char* filename);
 extern void cemircol_reader_free(cemircol_reader_t reader);
 extern unsigned long long cemircol_reader_num_rows(cemircol_reader_t reader);
 extern double* cemircol_reader_query_float64(cemircol_reader_t reader, const char* column, size_t* out_len);
+extern int cemircol_writer_write_float64(const char* filename, const char* column, const double* data, size_t len);
 extern void cemircol_free_data(void* ptr, size_t len, int is_float);
 */
 import "C"
@@ -77,4 +78,18 @@ func (r *Reader) QueryFloat64(column string) ([]float64, error) {
 	C.cemircol_free_data(unsafe.Pointer(ptr), outLen, 1)
 	
 	return goSlice, nil
+}
+
+// WriteFloat64 creates a CemirCol file with a single float64 column.
+func WriteFloat64(filename, column string, data []float64) error {
+	cFilename := C.CString(filename)
+	defer C.free(unsafe.Pointer(cFilename))
+	cColumn := C.CString(column)
+	defer C.free(unsafe.Pointer(cColumn))
+
+	res := C.cemircol_writer_write_float64(cFilename, cColumn, (*C.double)(unsafe.Pointer(&data[0])), C.size_t(len(data)))
+	if res != 0 {
+		return fmt.Errorf("failed to write cemircol file (error code: %d)", res)
+	}
+	return nil
 }

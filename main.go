@@ -3,32 +3,42 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 	"github.com/muslu/cemircol-go/cemircol"
 )
 
 func main() {
-	// Önce Rust tarafını derlemeniz gerekir:
-	// cargo build --release
-	
-	reader, err := cemircol.NewReader("data.cemir")
+	// Örnek: 1 milyon satırlık veri oluştur
+	const numRows = 1_000_000
+	const filename = "example.cemir"
+
+	data := make([]float64, numRows)
+	for i := 0; i < numRows; i++ {
+		data[i] = float64(i) * 1.23
+	}
+
+	fmt.Printf("📝 %d satır yazılıyor...\n", numRows)
+	start := time.Now()
+	err := cemircol.WriteFloat64(filename, "test_col", data)
 	if err != nil {
-		log.Fatalf("Hata: %v", err)
+		log.Fatalf("Yazma hatası: %v", err)
+	}
+	fmt.Printf("✅ Yazma süresi: %v\n", time.Since(start))
+
+	fmt.Printf("📖 %s okunuyor...\n", filename)
+	start = time.Now()
+	reader, err := cemircol.NewReader(filename)
+	if err != nil {
+		log.Fatalf("Okuma hatası: %v", err)
 	}
 	defer reader.Close()
 
-	fmt.Printf("Dosya açıldı. Satır sayısı: %d\n", reader.NumRows())
-
-	data, err := reader.QueryFloat64("val")
+	val, err := reader.QueryFloat64("test_col")
 	if err != nil {
-		fmt.Printf("Sütun okunamadı: %v\n", err)
-	} else {
-		fmt.Printf("Okunan veri (ilk 5): %v\n", data[:min(5, len(data))])
+		log.Fatalf("Sorgu hatası: %v", err)
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
+	
+	fmt.Printf("✅ Okuma süresi: %v\n", time.Since(start))
+	fmt.Printf("📊 Satır sayısı: %d\n", reader.NumRows())
+	fmt.Printf("🔍 İlk 5 değer: %v\n", val[:5])
 }

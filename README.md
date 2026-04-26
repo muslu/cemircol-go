@@ -7,15 +7,25 @@ CemirCol yüksek performanslı sütun tabanlı veri depolama formatının Go dil
 Bu kütüphane Rust çekirdeğine bağımlıdır. Kullanmadan önce Rust tarafını derlemelisiniz:
 
 ```bash
-# Rust kütüphanesini derleyin (staticlib oluşturur)
-cargo build --release
+# Kurulum ve derleme için:
+./setup.sh
 ```
 
 Go tarafında bağımlılığı ekleyin:
 
 ```bash
-go get github.com/muslu/cemircol-go
+go get github.com/muslu/cemircol-go/cemircol
 ```
+
+## Performans (Benchmark)
+
+10 milyon satırlık (`float64`) veri üzerinde yapılan test sonuçları:
+
+- **Yazma Hızı:** ~50 Milyon satır/sn
+- **Okuma Hızı:** ~75 Milyon satır/sn (mmap + zero-copy)
+- **Dosya Boyutu:** ~80 MB (ham veri 80MB, zstd sıkıştırma ile veriye göre değişir)
+
+Testi çalıştırmak için: `go run benchmark.go`
 
 ## Örnek Kullanım
 
@@ -24,16 +34,21 @@ package main
 
 import (
 	"fmt"
-	"github.com/muslu/cemircol-go"
+	"github.com/muslu/cemircol-go/cemircol"
 )
 
 func main() {
+	// Veri yazma
+	data := []float64{1.1, 2.2, 3.3}
+	cemircol.WriteFloat64("data.cemir", "val", data)
+
+	// Veri okuma
 	reader, _ := cemircol.NewReader("data.cemir")
 	defer reader.Close()
 
 	fmt.Println("Satır sayısı:", reader.NumRows())
-	data, _ := reader.QueryFloat64("score")
-	fmt.Println("Veriler:", data)
+	val, _ := reader.QueryFloat64("val")
+	fmt.Println("Veriler:", val)
 }
 ```
 

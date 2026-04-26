@@ -74,6 +74,29 @@ pub extern "C" fn cemircol_reader_query_float64(
 }
 
 #[no_mangle]
+pub extern "C" fn cemircol_writer_write_float64(
+    filename: *const c_char,
+    col_name: *const c_char,
+    data: *const f64,
+    len: usize,
+) -> i32 {
+    if filename.is_null() || col_name.is_null() || data.is_null() {
+        return -1;
+    }
+    let filename_str = unsafe { CStr::from_ptr(filename).to_str().unwrap_or("") };
+    let col_name_str = unsafe { CStr::from_ptr(col_name).to_str().unwrap_or("") };
+    let data_slice = unsafe { std::slice::from_raw_parts(data as *const u8, len * 8) };
+
+    let mut columns = Vec::new();
+    columns.push((col_name_str.to_string(), data_slice.to_vec(), "float64".to_string()));
+
+    match crate::writer::CemircolWriter::write_file(filename_str, columns, len as u64) {
+        Ok(_) => 0,
+        Err(_) => -2,
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn cemircol_free_data(ptr: *mut c_void, len: usize, is_float: bool) {
     if ptr.is_null() {
         return;
