@@ -27,6 +27,20 @@ go get github.com/muslu/cemircol-go/cemircol
 
 Testi çalıştırmak için: `go run benchmark.go`
 
+## Parquet ile Karşılaştırma (1 Milyon Satır)
+
+`cemircol-go` ve `parquet-go` (xitongsys) kütüphaneleri arasında 1 milyon `float64` satırı ile yapılan karşılaştırma:
+
+| İşlem | CemirCol-Go | Parquet-Go | Fark |
+| :--- | :--- | :--- | :--- |
+| **Yazma (Write)** | ~22ms | ~75ms | **3.4x Daha Hızlı** |
+| **Okuma (Read)** | **~12ms** | ~130ms | **10.8x Daha Hızlı** |
+| **Dosya Boyutu** | **1.02 MB** | 3.94 MB | **3.8x Daha Küçük** |
+
+*Not: Okuma hızındaki muazzam fark, CemirCol'un mmap ve sıfır-kopya (zero-copy) mimarisinden kaynaklanmaktadır.*
+
+Testi çalıştırmak için: `go run comparison_benchmark.go`
+
 ## Örnek Kullanım
 
 ```go
