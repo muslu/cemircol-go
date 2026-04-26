@@ -1,19 +1,21 @@
 use flate2::read::ZlibDecoder;
 use memmap2::{Mmap, MmapOptions};
+#[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
+#[cfg(feature = "pyo3")]
 use pyo3::types::{PyByteArray, PyList};
 use std::fs::File;
 use std::io::{Cursor, Read};
 
 use crate::writer::FileMeta;
 
-#[pyclass]
+#[cfg_attr(feature = "pyo3", pyclass)]
 pub struct CemircolReader {
     mmap: Mmap,
     metadata: FileMeta,
 }
 
-#[pymethods]
+#[cfg_attr(feature = "pyo3", pymethods)]
 impl CemircolReader {
     pub fn open(file_path: &str) -> Result<Self, String> {
         let file = File::open(file_path).map_err(|e| e.to_string())?;
@@ -86,6 +88,7 @@ impl CemircolReader {
     /// Tek sütun sorgula.
     /// Sıfır-kopya pipeline: mmap → doğrudan PyByteArray içine decompress →
     /// numpy sıfır-kopya view. Hiçbir ara Rust buffer yok.
+    #[cfg(feature = "pyo3")]
     fn query<'py>(&self, py: Python<'py>, column: &str) -> PyResult<Bound<'py, PyAny>> {
         let col_meta = self.metadata.columns.get(column).ok_or_else(|| {
             pyo3::exceptions::PyKeyError::new_err(format!("Column '{}' not found", column))
@@ -162,11 +165,11 @@ impl CemircolReader {
         }
     }
 
-    fn columns(&self) -> Vec<String> {
+    pub fn columns(&self) -> Vec<String> {
         self.metadata.columns.keys().cloned().collect()
     }
 
-    fn num_rows(&self) -> u64 {
+    pub fn num_rows(&self) -> u64 {
         self.metadata.num_rows
     }
 }

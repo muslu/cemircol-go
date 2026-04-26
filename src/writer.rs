@@ -1,4 +1,6 @@
+#[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
+#[cfg(feature = "pyo3")]
 use pyo3::types::PyDict;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -26,11 +28,12 @@ pub struct FileMeta {
     pub compression: String,
 }
 
-#[pyclass]
+#[cfg_attr(feature = "pyo3", pyclass)]
 pub struct CemircolWriter;
 
-#[pymethods]
+#[cfg_attr(feature = "pyo3", pymethods)]
 impl CemircolWriter {
+    #[cfg(feature = "pyo3")]
     #[staticmethod]
     fn write(filename: &str, data: &Bound<'_, PyDict>) -> PyResult<()> {
         if data.is_empty() {

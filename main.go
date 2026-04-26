@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"github.com/muslu/cemircol-go"
+	"github.com/muslu/cemircol-go/cemircol"
 )
 
 func main() {
