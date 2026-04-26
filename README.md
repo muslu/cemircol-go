@@ -65,7 +65,7 @@ func main() {
 
 *   `cemircol/`: Go sarmalayıcı (CGO).
 *   `src/`: Rust çekirdek implementasyonu (Reader, Writer, C-ABI).
-*   `benchmark/`: Performans testleri ve log işleme örnekleri.
+*   `benchmark/`: Performans testleri ve log işleme örnekleri (Alt dizinlere ayrılmıştır).
 *   `setup.sh`: Geliştirme ortamı kurulum scripti.
 *   `publish.sh`: Git yayınlama ve versiyonlama scripti.
 

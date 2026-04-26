@@ -15,8 +15,8 @@
 - `benchmark/`: Performance testing and Parquet comparison scripts.
 
 ## Key Commands
-- **Benchmark**: `cd benchmark && go run generate_logs.go && go run postfix_parser.go && go run postfix_logger.go`
-- **Parquet Comparison**: `cd benchmark && go run parquet_parser.go && go run parquet_logger.go`
+- **Benchmark**: `go run benchmark/gen/main.go && go run benchmark/parser/main.go && go run benchmark/logger/main.go`
+- **Parquet Comparison**: `go run benchmark/pq_parser/main.go && go run benchmark/pq_logger/main.go`
 - **Publish**: `./publish.sh`
 
 ## Code Style

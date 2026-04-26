@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/muslu/cemircol-go/cemircol"
 	"log"
 	"time"
-	"github.com/muslu/cemircol-go/cemircol"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Sorgu hatası: %v", err)
 	}
-	
+
 	fmt.Printf("✅ Okuma süresi: %v\n", time.Since(start))
 	fmt.Printf("📊 Satır sayısı: %d\n", reader.NumRows())
 	fmt.Printf("🔍 İlk 5 değer: %v\n", val[:5])

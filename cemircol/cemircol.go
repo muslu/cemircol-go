@@ -1,3 +1,5 @@
+// Package cemircol provides Go bindings for the CemirCol high-performance columnar storage engine.
+// It uses CGO to interface with a Rust core library and provides mmap-based fast reading.
 package cemircol
 
 /*
@@ -27,6 +29,7 @@ type Reader struct {
 }
 
 // NewReader opens a CemirCol file and returns a Reader.
+// It uses memory mapping (mmap) for high-performance data access.
 func NewReader(filename string) (*Reader, error) {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
@@ -38,7 +41,7 @@ func NewReader(filename string) (*Reader, error) {
 	return &Reader{ptr: ptr}, nil
 }
 
-// Close releases the resources associated with the reader.
+// Close releases the resources associated with the reader and unmaps the file.
 func (r *Reader) Close() {
 	if r.ptr != nil {
 		C.cemircol_reader_free(r.ptr)
@@ -46,7 +49,7 @@ func (r *Reader) Close() {
 	}
 }
 
-// NumRows returns the number of rows in the file.
+// NumRows returns the total number of rows stored in the CemirCol file.
 func (r *Reader) NumRows() uint64 {
 	if r.ptr == nil {
 		return 0
@@ -55,6 +58,7 @@ func (r *Reader) NumRows() uint64 {
 }
 
 // QueryFloat64 reads a float64 column into a Go slice.
+// It provides zero-copy performance by copying data directly from memory-mapped blocks.
 func (r *Reader) QueryFloat64(column string) ([]float64, error) {
 	if r.ptr == nil {
 		return nil, fmt.Errorf("reader is closed")
@@ -73,11 +77,12 @@ func (r *Reader) QueryFloat64(column string) ([]float64, error) {
 	goSlice := make([]float64, int(outLen))
 	copy(goSlice, cSlice)
 	C.cemircol_free_data(unsafe.Pointer(ptr), outLen, 1)
-	
+
 	return goSlice, nil
 }
 
 // QueryInt64 reads an int64 column into a Go slice.
+// It provides zero-copy performance by copying data directly from memory-mapped blocks.
 func (r *Reader) QueryInt64(column string) ([]int64, error) {
 	if r.ptr == nil {
 		return nil, fmt.Errorf("reader is closed")
@@ -96,11 +101,12 @@ func (r *Reader) QueryInt64(column string) ([]int64, error) {
 	goSlice := make([]int64, int(outLen))
 	copy(goSlice, cSlice)
 	C.cemircol_free_data(unsafe.Pointer(ptr), outLen, 0)
-	
+
 	return goSlice, nil
 }
 
 // WriteFloat64 creates a CemirCol file with a single float64 column.
+// The file is compressed using Zstd for efficient storage.
 func WriteFloat64(filename, column string, data []float64) error {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
@@ -115,6 +121,7 @@ func WriteFloat64(filename, column string, data []float64) error {
 }
 
 // WriteInt64 creates a CemirCol file with a single int64 column.
+// The file is compressed using Zstd for efficient storage.
 func WriteInt64(filename, column string, data []int64) error {
 	cFilename := C.CString(filename)
 	defer C.free(unsafe.Pointer(cFilename))
