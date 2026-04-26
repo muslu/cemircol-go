@@ -15,13 +15,13 @@
 
 ## 📊 Performans (Benchmark)
 
-1 milyon `float64` satırı üzerinde yapılan karşılaştırma sonuçları:
+5 milyon `float64` satırı üzerinde yapılan karşılaştırma sonuçları:
 
 | İşlem | CemirCol-Go | Parquet-Go (xitongsys) | Fark |
 | :--- | :--- | :--- | :--- |
-| **Yazma (Write)** | **~22ms** | ~75ms | **3.4x Daha Hızlı** |
-| **Okuma (Read)** | **~12ms** | ~130ms | **10.8x Daha Hızlı** |
-| **Dosya Boyutu** | **1.02 MB** | 3.94 MB | **3.8x Daha Küçük** |
+| **Yazma (Write)** | **~125ms** | ~340ms | **2.7x Daha Hızlı** |
+| **Okuma (Read)** | **~78ms** | ~650ms | **8.3x Daha Hızlı** |
+| **Dosya Boyutu** | **5.92 MB** | 22.15 MB | **3.7x Daha Küçük** |
 
 *Not: Benchmark sonuçları veri tipine ve donanıma göre değişiklik gösterebilir. Testleri kendiniz çalıştırmak için `benchmark/` dizinine göz atın.*
 

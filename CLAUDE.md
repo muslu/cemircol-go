@@ -16,6 +16,7 @@
 
 ## Key Commands
 - **Benchmark**: `go run benchmark/gen/main.go && go run benchmark/parser/main.go && go run benchmark/logger/main.go`
+- **Full Comparison**: `go run benchmark/compare_all/main.go`
 - **Parquet Comparison**: `go run benchmark/pq_parser/main.go && go run benchmark/pq_logger/main.go`
 - **Publish**: `./publish.sh`
 
