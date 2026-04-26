@@ -1,0 +1,28 @@
+[package]
+name = "cemircol"
+version = "1.0.1"
+edition = "2021"
+description = "High-performance columnar storage with zlib compression. Parquet alternative."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/muslu/cemircol.git"
+
+[lib]
+name = "cemircol"
+crate-type = ["staticlib", "cdylib"]
+
+[dependencies]
+libc = "0.2"
+pyo3 = { version = "0.28", features = ["extension-module"], optional = true }
+memmap2 = "0.9"
+flate2 = "1.0"
+zstd = "0.13"
+rayon = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
