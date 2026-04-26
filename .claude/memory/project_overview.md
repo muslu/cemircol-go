@@ -1,36 +1,15 @@
----
-name: Proje Genel Bakış
-description: cemircol'un ne olduğu, mimarisi, dosya formatı ve bağımlılıkları
-type: project
----
+# Project Overview: CemirCol-Go
 
-cemircol, Rust/PyO3 ile yazılmış yüksek performanslı sütun tabanlı veri depolama kütüphanesidir.
+CemirCol-Go is a high-performance columnar storage library for Go, powered by a Rust core. It is designed to be a faster and more efficient alternative to Parquet for specific numeric and correlated data workloads.
 
-**Why:** Parquet'ten daha küçük dosya boyutu ve daha hızlı sütun sorgusu sağlamak için tasarlandı.
-**How to apply:** Yeni özellik eklerken mevcut `.cemir` dosya formatını bozmamaya dikkat et; geriye dönük uyumluluğu `compression` alanındaki `#[serde(default)]` gibi mekanizmalarla koru.
+## Key Features
+- **mmap-based Reading**: Instant file loading without reading the entire file into memory.
+- **Zero-Copy Architecture**: Data is read directly from memory-mapped files into Go slices with minimal overhead.
+- **High Compression**: Utilizes Zstd compression for efficient storage (~4x smaller than equivalent Parquet files in some tests).
+- **C-ABI Bridge**: Seamless integration between Go and Rust with safe memory management.
+- **Dictionary Encoding Support**: Efficiently store repetitive strings (like email addresses) in a numeric-first columnar format.
 
-## Dosya Formatı (.cemir)
-```
-[magic: b"CEM1"] [col_data_1] [col_data_2] ... [metadata_json] [meta_len: u64 LE] [magic: b"CEM1"]
-```
-- Her sütun bağımsız sıkıştırılır (zstd level 22 = maksimum)
-- `FileMeta` JSON footer'da: `num_rows`, `columns: HashMap<name, ColumnMeta>`, `compression`
-- `ColumnMeta`: `offset`, `compressed_length`, `uncompressed_length`, `data_type`
-- Desteklenen tipler: `int64`, `float64`
-
-## Mimari
-- `src/lib.rs` — PyModule giriş noktası
-- `src/writer.rs` — `CemircolWriter::write()` static method; FileMeta + ColumnMeta tanımları burada
-- `src/reader.rs` — `CemircolReader`; mmap + metadata parse + query()
-- `cemircol/__init__.py` — Python katmanı; `from_csv`, `from_parquet` helper'ları
-
-## Bağımlılıklar (Cargo.toml)
-- `pyo3 = "0.28"` — Python binding
-- `memmap2 = "0.9"` — memory-mapped file okuma
-- `zstd = "0.13"` — hızlı sıkıştırma (yeni format)
-- `flate2 = "1.0"` — eski zlib formatı için geriye dönük uyumluluk
-- `rayon = "1.10"` — paralel sütun sıkıştırma
-- `serde + serde_json` — metadata serializasyonu
-
-## Release profili
-`lto = "fat"`, `codegen-units = 1`, `opt-level = 3`, `panic = "abort"` — maksimum binary optimizasyonu
+## Current Status
+- **Core Engine**: Stable reading/writing for Float64 and Int64.
+- **Go Integration**: Fully functional Go package with automated setup scripts.
+- **Benchmarking**: Proven performance advantages over Parquet in Go for specific logging use cases.

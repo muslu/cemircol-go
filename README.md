@@ -1,47 +1,40 @@
-# CemirCol-Go
+# CemirCol-Go 🚀
 
-CemirCol yüksek performanslı sütun tabanlı veri depolama formatının Go dili için kütüphanesidir. Rust çekirdeğini (core) C-ABI üzerinden kullanarak mmap ve sıfır-kopya (zero-copy) performansını Go ekosistemine taşır.
+**CemirCol-Go**, yüksek performanslı sütun tabanlı (columnar) veri depolama formatının Go dili için optimize edilmiş kütüphanesidir. Rust çekirdeğini (core) C-ABI üzerinden kullanarak **mmap** ve **sıfır-kopya (zero-copy)** performansını Go ekosistemine taşır.
 
-## Kurulum
+[![Go Report Card](https://goreportcard.com/badge/github.com/muslu/cemircol-go)](https://goreportcard.com/report/github.com/muslu/cemircol-go)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Bu kütüphane Rust çekirdeğine bağımlıdır. Kullanmadan önce Rust tarafını derlemelisiniz:
+## ✨ Özellikler
 
-```bash
-# Kurulum ve derleme için:
-./setup.sh
-```
+*   🚀 **Ultra Hızlı Okuma:** mmap sayesinde dosyayı belleğe yüklemeden anında erişim.
+*   💎 **Sıfır-Kopya (Zero-Copy):** Rust'tan Go'ya veri aktarırken ek bellek kopyalaması yapmaz.
+*   📦 **Yüksek Sıkıştırma:** Zstd algoritması ile Parquet'den daha küçük dosya boyutları.
+*   🛠️ **Dictionary Encoding:** Tekrar eden metin verileri (e-posta, durum kodları vb.) için optimize edilmiş depolama.
+*   🔌 **Kolay Entegrasyon:** Otomatik kurulum scriptleri ve basit API.
 
-Go tarafında bağımlılığı ekleyin:
+## 📊 Performans (Benchmark)
 
-```bash
-go get github.com/muslu/cemircol-go/cemircol
-```
+1 milyon `float64` satırı üzerinde yapılan karşılaştırma sonuçları:
 
-## Performans (Benchmark)
-
-10 milyon satırlık (`float64`) veri üzerinde yapılan test sonuçları:
-
-- **Yazma Hızı:** ~50 Milyon satır/sn
-- **Okuma Hızı:** ~75 Milyon satır/sn (mmap + zero-copy)
-- **Dosya Boyutu:** ~80 MB (ham veri 80MB, zstd sıkıştırma ile veriye göre değişir)
-
-Testi çalıştırmak için: `go run benchmark.go`
-
-## Parquet ile Karşılaştırma (1 Milyon Satır)
-
-`cemircol-go` ve `parquet-go` (xitongsys) kütüphaneleri arasında 1 milyon `float64` satırı ile yapılan karşılaştırma:
-
-| İşlem | CemirCol-Go | Parquet-Go | Fark |
+| İşlem | CemirCol-Go | Parquet-Go (xitongsys) | Fark |
 | :--- | :--- | :--- | :--- |
-| **Yazma (Write)** | ~22ms | ~75ms | **3.4x Daha Hızlı** |
+| **Yazma (Write)** | **~22ms** | ~75ms | **3.4x Daha Hızlı** |
 | **Okuma (Read)** | **~12ms** | ~130ms | **10.8x Daha Hızlı** |
 | **Dosya Boyutu** | **1.02 MB** | 3.94 MB | **3.8x Daha Küçük** |
 
-*Not: Okuma hızındaki muazzam fark, CemirCol'un mmap ve sıfır-kopya (zero-copy) mimarisinden kaynaklanmaktadır.*
+*Not: Benchmark sonuçları veri tipine ve donanıma göre değişiklik gösterebilir. Testleri kendiniz çalıştırmak için `benchmark/` dizinine göz atın.*
 
-Testi çalıştırmak için: `go run comparison_benchmark.go`
+## 🛠️ Kurulum
 
-## Örnek Kullanım
+Bu kütüphane Rust çekirdeğine bağımlıdır. Tüm kurulum ve derleme işlemlerini tek komutla yapabilirsiniz:
+
+```bash
+# Otomatik kurulum ve derleme (Rust & Go)
+./setup.sh
+```
+
+## 💻 Örnek Kullanım
 
 ```go
 package main
@@ -52,23 +45,30 @@ import (
 )
 
 func main() {
-	// Veri yazma
-	data := []float64{1.1, 2.2, 3.3}
-	cemircol.WriteFloat64("data.cemir", "val", data)
+	// Veri yazma (Int64 örneği)
+	data := []int64{100, 200, 300, 400, 500}
+	cemircol.WriteInt64("data.cemir", "score", data)
 
 	// Veri okuma
 	reader, _ := cemircol.NewReader("data.cemir")
 	defer reader.Close()
 
-	fmt.Println("Satır sayısı:", reader.NumRows())
-	val, _ := reader.QueryFloat64("val")
-	fmt.Println("Veriler:", val)
+	fmt.Println("Toplam Satır:", reader.NumRows())
+	
+	// Sütun sorgulama (Sıfır-kopya performansıyla)
+	scores, _ := reader.QueryInt64("score")
+	fmt.Println("Skorlar:", scores)
 }
 ```
 
-## Neden Go?
+## 📂 Proje Yapısı
 
-Go, özellikle backend sistemlerinde ve veri işleme hatlarında (pipelines) hızı ve eşzamanlılık (concurrency) yetenekleriyle öne çıkar. CemirCol'un Rust çekirdeğini Go ile sarmalayarak:
-- Python'un yavaşlığından kurtulursunuz.
-- Go'nun `goroutine` yapısı ile milyonlarca satırı paralel işleyebilirsiniz.
-- Bellek yönetimini Go'nun GC'sine (çöp toplayıcısına) bırakırken, ağır veri işleme işlerini Rust'ın performansına emanet edersiniz.
+*   `cemircol/`: Go sarmalayıcı (CGO).
+*   `src/`: Rust çekirdek implementasyonu (Reader, Writer, C-ABI).
+*   `benchmark/`: Performans testleri ve log işleme örnekleri.
+*   `setup.sh`: Geliştirme ortamı kurulum scripti.
+*   `publish.sh`: Git yayınlama ve versiyonlama scripti.
+
+## 📄 Lisans
+
+Bu proje MIT lisansı ile lisanslanmıştır. Daha fazla bilgi için `LICENSE` dosyasına bakınız.

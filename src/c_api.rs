@@ -74,6 +74,36 @@ pub extern "C" fn cemircol_reader_query_float64(
 }
 
 #[no_mangle]
+pub extern "C" fn cemircol_reader_query_int64(
+    reader: *const CemircolReader,
+    column: *const c_char,
+    out_len: *mut usize,
+) -> *mut i64 {
+    if reader.is_null() || column.is_null() {
+        return ptr::null_mut();
+    }
+    let reader = unsafe { &*reader };
+    let c_str = unsafe { CStr::from_ptr(column) };
+    let col_name = match c_str.to_str() {
+        Ok(s) => s,
+        Err(_) => return ptr::null_mut(),
+    };
+
+    match reader.read_column_raw(col_name) {
+        Ok(data) => {
+            let mut data = data.into_boxed_slice();
+            unsafe {
+                *out_len = data.len();
+                let ptr = data.as_mut_ptr();
+                std::mem::forget(data);
+                ptr as *mut i64
+            }
+        }
+        Err(_) => ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn cemircol_writer_write_float64(
     filename: *const c_char,
     col_name: *const c_char,
@@ -89,6 +119,29 @@ pub extern "C" fn cemircol_writer_write_float64(
 
     let mut columns = Vec::new();
     columns.push((col_name_str.to_string(), data_slice.to_vec(), "float64".to_string()));
+
+    match crate::writer::CemircolWriter::write_file(filename_str, columns, len as u64) {
+        Ok(_) => 0,
+        Err(_) => -2,
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn cemircol_writer_write_int64(
+    filename: *const c_char,
+    col_name: *const c_char,
+    data: *const i64,
+    len: usize,
+) -> i32 {
+    if filename.is_null() || col_name.is_null() || data.is_null() {
+        return -1;
+    }
+    let filename_str = unsafe { CStr::from_ptr(filename).to_str().unwrap_or("") };
+    let col_name_str = unsafe { CStr::from_ptr(col_name).to_str().unwrap_or("") };
+    let data_slice = unsafe { std::slice::from_raw_parts(data as *const u8, len * 8) };
+
+    let mut columns = Vec::new();
+    columns.push((col_name_str.to_string(), data_slice.to_vec(), "int64".to_string()));
 
     match crate::writer::CemircolWriter::write_file(filename_str, columns, len as u64) {
         Ok(_) => 0,
