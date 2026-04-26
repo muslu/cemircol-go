@@ -1,4 +1,9 @@
 /target
 /main
+/sensor
+/finance
+/weblog
 go.sum
+*.cemir
+*.parquet
 

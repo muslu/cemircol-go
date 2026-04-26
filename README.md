@@ -15,15 +15,67 @@
 
 ## 📊 Performans (Benchmark)
 
-5 milyon `float64` satırı üzerinde yapılan karşılaştırma sonuçları:
+Üç farklı gerçek dünya senaryosunda CemirCol-Go ile Parquet-Go karşılaştırması.  
+Tüm testler aynı donanımda çalıştırılmış; sonuçlar deterministik rastgele veri ile üretilmiştir.
 
-| İşlem | CemirCol-Go | Parquet-Go (xitongsys) | Fark |
-| :--- | :--- | :--- | :--- |
-| **Yazma (Write)** | **~125ms** | ~340ms | **2.7x Daha Hızlı** |
-| **Okuma (Read)** | **~78ms** | ~650ms | **8.3x Daha Hızlı** |
-| **Dosya Boyutu** | **5.92 MB** | 22.15 MB | **3.7x Daha Küçük** |
+> Testleri kendiniz çalıştırmak için `benchmark/` dizinine göz atın.
 
-*Not: Benchmark sonuçları veri tipine ve donanıma göre değişiklik gösterebilir. Testleri kendiniz çalıştırmak için `benchmark/` dizinine göz atın.*
+---
+
+### Senaryo 1 — IoT Sensör Verisi
+
+**1.000.000 satır · 4 kolon** (`timestamp`, `device_id`, `temperature`, `humidity`)  
+Script: `benchmark/sensor/main.go`
+
+| İşlem | CemirCol-Go | Parquet-Go | Fark |
+| :--- | :---: | :---: | :--- |
+| **Yazma (Write)** | **68 ms** | 171 ms | **2.5x daha hızlı** |
+| **Okuma (Read)** | **43 ms** | 219 ms | **5.1x daha hızlı** |
+| **Filtre Sorgusu** | **3.2 ms** | 3.9 ms | **1.2x daha hızlı** |
+| **Dosya Boyutu** | **16.9 MB** | 22.5 MB | **1.3x daha küçük** |
+| **Sıkıştırma Oranı** | **1.80x** | 1.36x | Ham 30.5 MB veriden |
+
+---
+
+### Senaryo 2 — Finansal OHLCV Verisi
+
+**2.000.000 satır · 6 kolon** (`timestamp`, `open`, `high`, `low`, `close`, `volume`)  
+Script: `benchmark/finance/main.go`
+
+| İşlem | CemirCol-Go | Parquet-Go | Fark |
+| :--- | :---: | :---: | :--- |
+| **Yazma (Write)** | **231 ms** | 458 ms | **2.0x daha hızlı** |
+| **Okuma (Read)** | **129 ms** | 630 ms | **4.9x daha hızlı** |
+| **Analitik Sorgu** | **11.4 ms** | 12.6 ms | **1.1x daha hızlı** |
+| **Dosya Boyutu** | **64.9 MB** | 79.8 MB | **1.2x daha küçük** |
+| **Sıkıştırma Oranı** | **1.41x** | 1.15x | Ham 91.6 MB veriden |
+
+---
+
+### Senaryo 3 — Web Erişim Logu Analitiği
+
+**3.000.000 satır · 5 kolon** (`timestamp`, `user_id`, `status_code`, `response_ms`, `bytes_sent`)  
+Script: `benchmark/weblog/main.go`
+
+| İşlem | CemirCol-Go | Parquet-Go | Fark |
+| :--- | :---: | :---: | :--- |
+| **Yazma (Write)** | **355 ms** | 564 ms | **1.6x daha hızlı** |
+| **Okuma (Read)** | **168 ms** | 846 ms | **5.0x daha hızlı** |
+| **Analitik Sorgu** | 11.8 ms | **10.6 ms** | Parquet 1.1x daha hızlı |
+| **Dosya Boyutu** | **44.0 MB** | 67.4 MB | **1.5x daha küçük** |
+| **Sıkıştırma Oranı** | **2.60x** | 1.70x | Ham 114.4 MB veriden |
+
+---
+
+### Özet
+
+| | Yazma | Okuma | Dosya Boyutu |
+| :--- | :---: | :---: | :---: |
+| **Ortalama Hız Farkı** | **~2x hızlı** | **~5x hızlı** | **~1.3x küçük** |
+
+CemirCol-Go okuma performansında Parquet'e karşı tutarlı biçimde **~5x** üstünlük sağlar.  
+Dosya boyutunda Parquet'in kendi sıkıştırması rekabetçi kalsa da mmap tabanlı okuma,  
+büyük veri setlerinde belleğe alma (deserialization) maliyetini tamamen ortadan kaldırır.
 
 ## 🛠️ Kurulum
 
@@ -65,7 +117,12 @@ func main() {
 
 *   `cemircol/`: Go sarmalayıcı (CGO).
 *   `src/`: Rust çekirdek implementasyonu (Reader, Writer, C-ABI).
-*   `benchmark/`: Performans testleri ve log işleme örnekleri (Alt dizinlere ayrılmıştır).
+*   `benchmark/`: Performans testleri ve karşılaştırma scriptleri.
+    *   `sensor/` — IoT sensör verisi (1M satır, 4 kolon)
+    *   `finance/` — Finansal OHLCV verisi (2M satır, 6 kolon)
+    *   `weblog/` — Web erişim logu analitiği (3M satır, 5 kolon)
+    *   `compare_all/` — Tek kolon float64 büyük veri karşılaştırması
+    *   `gen/`, `parser/`, `logger/`, `pq_parser/`, `pq_logger/` — Log işleme örnekleri
 *   `setup.sh`: Geliştirme ortamı kurulum scripti.
 *   `publish.sh`: Git yayınlama ve versiyonlama scripti.
 
