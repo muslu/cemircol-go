@@ -2,10 +2,13 @@
 use pyo3::prelude::*;
 #[cfg(feature = "pyo3")]
 use pyo3::types::PyDict;
+#[cfg(feature = "pyo3")]
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+#[cfg(feature = "pyo3")]
 use std::fs::File;
+#[cfg(feature = "pyo3")]
 use std::io::{BufWriter, Write};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

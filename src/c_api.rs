@@ -1,4 +1,5 @@
 use crate::reader::CemircolReader;
+#[cfg(feature = "pyo3")]
 use crate::writer::CemircolWriter;
 use libc::{c_char, c_void};
 use std::ffi::CStr;
